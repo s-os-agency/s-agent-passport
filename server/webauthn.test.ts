@@ -1,49 +1,177 @@
-/**
- * Unit tests for the WebAuthn security layer (non-ceremony logic).
- * The actual passkey ceremony requires a hardware authenticator, so these
- * tests cover the surrounding logic: the recent-verification window,
- * vault-lock gating, and RP derivation from the request.
- */
-import { describe, expect, it } from "vitest";
-import { isRecentlyVerified, markVerified, rpFromRequest } from "./webauthn";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { COOKIE_NAME } from "../shared/const";
+vi.mock("./db", () => ({ getDb: vi.fn() }));
+vi.mock("@simplewebauthn/server", () => ({
+  generateRegistrationOptions: vi.fn().mockResolvedValue({ challenge: "register-challenge" }),
+  generateAuthenticationOptions: vi.fn().mockResolvedValue({ challenge: "auth-challenge" }),
+  verifyRegistrationResponse: vi.fn().mockResolvedValue({ verified: false }),
+  verifyAuthenticationResponse: vi.fn().mockResolvedValue({ verified: false }),
+}));
+import { getDb } from "./db";
+import { verifyRegistrationResponse, verifyAuthenticationResponse } from "@simplewebauthn/server";
+import {
+  clearVerification, isRecentlyVerified, markVerified, rpFromRequest,
+  verificationScope, vaultLockBlockReason, setVaultLock, removePasskey,
+  startRegistration, finishRegistration, startAuthentication, finishAuthentication,
+  VERIFY_WINDOW_MS,
+} from "./webauthn";
 
-describe("recent-verification window", () => {
-  it("reports not verified for a fresh user", () => {
-    expect(isRecentlyVerified(999901)).toBe(false);
+const scope = "7:session-one";
+const other = "7:session-two";
+function database(rows: unknown[]) {
+  const select = { from: vi.fn(), where: vi.fn(), limit: vi.fn() };
+  select.from.mockReturnValue(select);
+  select.where.mockReturnValue(Object.assign(Promise.resolve(rows), { limit: select.limit }));
+  select.limit.mockResolvedValue(rows);
+  const db = {
+    select: vi.fn(() => select),
+    insert: vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) })),
+    delete: vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) })),
+    update: vi.fn(() => ({ set: vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) })) })),
+  };
+  vi.mocked(getDb).mockResolvedValue(db as never);
+  return db;
+}
+beforeEach(() => { clearVerification(scope); clearVerification(other); vi.mocked(getDb).mockResolvedValue(null); });
+afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); vi.clearAllMocks(); });
+
+describe("session-bound verification", () => {
+  it("does not unlock another session of the same owner", () => {
+    markVerified(scope);
+    expect(isRecentlyVerified(scope)).toBe(true);
+    expect(isRecentlyVerified(other)).toBe(false);
   });
-
-  it("reports verified right after markVerified", () => {
-    markVerified(999902);
-    expect(isRecentlyVerified(999902)).toBe(true);
+  it("expires exactly at five minutes and rejects a clock rollback", () => {
+    vi.useFakeTimers(); vi.setSystemTime(1000000); markVerified(scope);
+    vi.advanceTimersByTime(VERIFY_WINDOW_MS);
+    expect(isRecentlyVerified(scope)).toBe(false);
+    markVerified(scope); vi.setSystemTime(1);
+    expect(isRecentlyVerified(scope)).toBe(false);
   });
-
-  it("keeps windows independent between users", () => {
-    markVerified(999903);
-    expect(isRecentlyVerified(999903)).toBe(true);
-    expect(isRecentlyVerified(999904)).toBe(false);
+  it("clears unlock and outstanding challenges on logout", async () => {
+    database([]);
+    await startRegistration({ id: 7, name: null, email: null }, "example.com", scope);
+    markVerified(scope); clearVerification(scope);
+    expect(isRecentlyVerified(scope)).toBe(false);
+    expect((await finishRegistration(7, {} as never, "example.com", "https://example.com", null, scope)).ok).toBe(false);
+    expect(verifyRegistrationResponse).not.toHaveBeenCalled();
+  });
+  it("hashes tokens and isolates owners and sessions", () => {
+    const req = { headers: { cookie: `${COOKIE_NAME}=secret-session` } };
+    expect(verificationScope(7, req)).not.toContain("secret-session");
+    expect(verificationScope(7, req)).not.toBe(verificationScope(8, req));
+    expect(() => verificationScope(7, { headers: {} })).toThrow();
   });
 });
 
-describe("rpFromRequest", () => {
-  it("derives rpID and origin from the host header", () => {
-    const req = {
-      protocol: "https",
-      headers: { host: "s-agent-passport.manus.space" },
-      get: (h: string) => (h.toLowerCase() === "host" ? "s-agent-passport.manus.space" : undefined),
-    } as never;
-    const { rpID, origin } = rpFromRequest(req);
-    expect(rpID).toBe("s-agent-passport.manus.space");
-    expect(origin).toBe("https://s-agent-passport.manus.space");
+describe("trusted origin", () => {
+  it("uses configured HTTPS origin despite forged proxy headers", () => {
+    vi.stubEnv("NODE_ENV", "production"); vi.stubEnv("PASSKEY_ORIGIN", "https://passport.example.com:8443");
+    expect(rpFromRequest({ headers: { host: "evil.example", "x-forwarded-host": "evil.example", "x-forwarded-proto": "http" } }))
+      .toEqual({ rpID: "passport.example.com", origin: "https://passport.example.com:8443" });
   });
+  it("requires explicit production configuration", () => {
+    vi.stubEnv("NODE_ENV", "production"); vi.stubEnv("PASSKEY_ORIGIN", "");
+    expect(() => rpFromRequest({ headers: { host: "localhost:3000" } })).toThrow();
+  });
+  it.each(["http://example.com", "https://u:p@example.com", "https://example.com/path", "https://example.com?x=1", "https://example.com/#x"])("rejects invalid origin %s", value => {
+    vi.stubEnv("PASSKEY_ORIGIN", value);
+    expect(() => rpFromRequest({ headers: {} })).toThrow();
+  });
+  it("permits local development without trusting forwarded headers", () => {
+    vi.stubEnv("NODE_ENV", "test"); vi.stubEnv("PASSKEY_ORIGIN", "");
+    expect(rpFromRequest({ protocol: "http", headers: { host: "localhost:3000", "x-forwarded-host": "evil.example" } }))
+      .toEqual({ rpID: "localhost", origin: "http://localhost:3000" });
+  });
+});
 
-  it("strips the port from rpID but keeps it in origin", () => {
-    const req = {
-      protocol: "http",
-      headers: { host: "localhost:3000" },
-      get: (h: string) => (h.toLowerCase() === "host" ? "localhost:3000" : undefined),
-    } as never;
-    const { rpID, origin } = rpFromRequest(req);
-    expect(rpID).toBe("localhost");
-    expect(origin).toBe("http://localhost:3000");
+describe("vault policy", () => {
+  it("blocks when database or owner policy is unavailable", async () => {
+    expect(await vaultLockBlockReason(7, scope)).toBeTruthy();
+    database([]); expect(await vaultLockBlockReason(7, scope)).toBeTruthy();
+  });
+  it("enforces the current lock state and current session", async () => {
+    database([{ vaultLockEnabled: 1 }]); markVerified(other);
+    expect(await vaultLockBlockReason(7, scope)).toBeTruthy();
+    markVerified(scope); expect(await vaultLockBlockReason(7, scope)).toBeNull();
+    database([{ vaultLockEnabled: 0 }]); expect(await vaultLockBlockReason(7, other)).toBeNull();
+  });
+  it("blocks unverified lock changes and credential deletion", async () => {
+    const db = database([{ id: 1, userId: 7 }]);
+    expect((await setVaultLock(7, false, scope)).ok).toBe(false);
+    await expect(removePasskey(7, 1, scope)).rejects.toThrow();
+    expect(db.update).not.toHaveBeenCalled(); expect(db.delete).not.toHaveBeenCalled();
+  });
+  it("requires an existing passkey to approve additional enrollment", async () => {
+    database([{ id: 1, userId: 7 }]);
+    await expect(startRegistration({ id: 7, name: null, email: null }, "example.com", scope)).rejects.toThrow();
+  });
+});
+
+describe("ceremony guards", () => {
+  it("requires server-side user verification and consumes registration challenges once", async () => {
+    database([]);
+    await startRegistration({ id: 7, name: null, email: null }, "example.com", scope);
+    await finishRegistration(7, {} as never, "example.com", "https://example.com", null, scope);
+    expect(verifyRegistrationResponse).toHaveBeenCalledWith(expect.objectContaining({ requireUserVerification: true, expectedChallenge: "register-challenge", expectedOrigin: "https://example.com" }));
+    await finishRegistration(7, {} as never, "example.com", "https://example.com", null, scope);
+    expect(verifyRegistrationResponse).toHaveBeenCalledTimes(1);
+    expect(isRecentlyVerified(scope)).toBe(false);
+  });
+  it("rejects cross-session and expired challenges before verification", async () => {
+    vi.useFakeTimers(); database([]);
+    await startRegistration({ id: 7, name: null, email: null }, "example.com", scope);
+    expect((await finishRegistration(7, {} as never, "example.com", "https://example.com", null, other)).ok).toBe(false);
+    vi.advanceTimersByTime(VERIFY_WINDOW_MS);
+    expect((await finishRegistration(7, {} as never, "example.com", "https://example.com", null, scope)).ok).toBe(false);
+    expect(verifyRegistrationResponse).not.toHaveBeenCalled();
+  });
+  it("requires user verification on authentication and rejects unknown owners", async () => {
+    database([{ userId: 7, credentialId: "cred", publicKey: "AA", counter: 0 }]);
+    await startAuthentication(7, "example.com", scope);
+    await finishAuthentication(7, { id: "cred" } as never, "example.com", "https://example.com", scope);
+    expect(verifyAuthenticationResponse).toHaveBeenCalledWith(expect.objectContaining({ requireUserVerification: true }));
+    database([{ userId: 8 }]);
+    await startAuthentication(7, "example.com", scope);
+    expect((await finishAuthentication(7, { id: "cred" } as never, "example.com", "https://example.com", scope)).ok).toBe(false);
+    expect(verifyAuthenticationResponse).toHaveBeenCalledTimes(1);
+  });
+});
+
+
+describe("verified ceremony persistence", () => {
+  it("unlocks only after verified enrollment is persisted", async () => {
+    const db = database([]);
+    vi.mocked(verifyRegistrationResponse).mockResolvedValueOnce({
+      verified: true, registrationInfo: {
+        credential: { id: "new-credential", publicKey: new Uint8Array([1, 2]), counter: 0 },
+        credentialDeviceType: "multiDevice", credentialBackedUp: true,
+      },
+    } as never);
+    await startRegistration({ id: 7, name: null, email: null }, "example.com", scope);
+    expect((await finishRegistration(7, {} as never, "example.com", "https://example.com", null, scope)).ok).toBe(true);
+    expect(db.insert).toHaveBeenCalledTimes(1);
+    expect(isRecentlyVerified(scope)).toBe(true);
+    expect(isRecentlyVerified(other)).toBe(false);
+  });
+  it("persists the authentication counter before unlocking", async () => {
+    const db = database([{ id: 1, userId: 7, credentialId: "cred", publicKey: "AA", counter: 0 }]);
+    vi.mocked(verifyAuthenticationResponse).mockResolvedValueOnce({
+      verified: true, authenticationInfo: { newCounter: 1 },
+    } as never);
+    await startAuthentication(7, "example.com", scope);
+    expect((await finishAuthentication(7, { id: "cred" } as never, "example.com", "https://example.com", scope)).ok).toBe(true);
+    expect(db.update).toHaveBeenCalledTimes(1);
+    expect(isRecentlyVerified(scope)).toBe(true);
+    expect(isRecentlyVerified(other)).toBe(false);
+  });
+  it("invalidates all owner sessions when a credential is removed", async () => {
+    database([{ id: 1, userId: 7 }]);
+    markVerified(scope); markVerified(other); markVerified("8:unrelated-session");
+    expect(await removePasskey(7, 1, scope)).toBe(true);
+    expect(isRecentlyVerified(scope)).toBe(false);
+    expect(isRecentlyVerified(other)).toBe(false);
+    expect(isRecentlyVerified("8:unrelated-session")).toBe(true);
+    clearVerification("8:unrelated-session");
   });
 });

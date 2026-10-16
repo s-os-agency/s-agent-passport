@@ -6,6 +6,8 @@
  */
 import { afterAll, describe, expect, it } from "vitest";
 import { and, eq, like } from "drizzle-orm";
+import { COOKIE_NAME } from "../shared/const";
+import { clearVerification, markVerified, verificationScope } from "./webauthn";
 import { appRouter } from "./routers";
 import { getDb } from "./db";
 import { passportRequests, passports, users, vaultSecrets } from "../drizzle/schema";
@@ -19,7 +21,7 @@ const KEY_NAME = "ITEST_SECRET_KEY";
 function ctxFor(user: NonNullable<TrpcContext["user"]>): TrpcContext {
   return {
     user,
-    req: { protocol: "https", headers: {} } as TrpcContext["req"],
+    req: { protocol: "https", headers: { cookie: `${COOKIE_NAME}=integration-session-${user.id}` } } as TrpcContext["req"],
     res: { clearCookie: () => undefined } as unknown as TrpcContext["res"],
   };
 }
@@ -52,7 +54,8 @@ describe("full product flow (integration)", () => {
 
     const owner = await createDbUser(OWNER_OPEN_ID, "user");
     const admin = await createDbUser(ADMIN_OPEN_ID, "admin");
-    const ownerCaller = appRouter.createCaller(ctxFor(owner));
+    const ownerCtx = ctxFor(owner);
+    const ownerCaller = appRouter.createCaller(ownerCtx);
     const adminCaller = appRouter.createCaller(ctxFor(admin));
 
     /* 1 — seal a secret in the vault */
@@ -103,6 +106,19 @@ describe("full product flow (integration)", () => {
     expect(exported.passport.capabilities).toContain("web_search");
     expect(exported.passport.permissions["can_write_memory"]).toBe(true);
     expect(exported.secretEnv).toEqual([{ key: KEY_NAME, value: "sk-integration-secret-42" }]);
+
+    // Lock policy is re-read from the real database on every export.
+    await db!.update(users).set({ vaultLockEnabled: 1 }).where(eq(users.id, owner.id));
+    await expect(ownerCaller.passports.exportData({ id: minted.id })).rejects.toThrow(/verify with your passkey/i);
+    const ownerScope = verificationScope(owner.id, ownerCtx.req);
+    markVerified(ownerScope);
+    expect((await ownerCaller.passports.exportData({ id: minted.id })).secretEnv).toEqual(exported.secretEnv);
+    const otherSession = ctxFor(owner);
+    otherSession.req.headers.cookie = `${COOKIE_NAME}=different-integration-session`;
+    await expect(appRouter.createCaller(otherSession).passports.exportData({ id: minted.id })).rejects.toThrow(/verify with your passkey/i);
+    clearVerification(ownerScope);
+    await expect(ownerCaller.passports.exportData({ id: minted.id })).rejects.toThrow(/verify with your passkey/i);
+    await db!.update(users).set({ vaultLockEnabled: 0 }).where(eq(users.id, owner.id));
 
     // another user cannot export it
     await expect(adminCaller.passports.exportData({ id: minted.id })).rejects.toThrow();

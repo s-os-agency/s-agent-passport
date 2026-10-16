@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
+import { isRecentlyVerified, markVerified, verificationScope } from "./webauthn";
 import { COOKIE_NAME } from "../shared/const";
 import type { TrpcContext } from "./_core/context";
 
@@ -20,6 +21,7 @@ function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] }
     name: "Sample User",
     loginMethod: "manus",
     role: "user",
+    vaultLockEnabled: 0,
     createdAt: new Date(),
     updatedAt: new Date(),
     lastSignedIn: new Date(),
@@ -29,7 +31,7 @@ function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] }
     user,
     req: {
       protocol: "https",
-      headers: {},
+      headers: { cookie: `${COOKIE_NAME}=logout-test-session` },
     } as TrpcContext["req"],
     res: {
       clearCookie: (name: string, options: Record<string, unknown>) => {
@@ -45,10 +47,14 @@ describe("auth.logout", () => {
   it("clears the session cookie and reports success", async () => {
     const { ctx, clearedCookies } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
+    const scope = verificationScope(ctx.user!.id, ctx.req);
+    markVerified(scope);
+    expect(isRecentlyVerified(scope)).toBe(true);
 
     const result = await caller.auth.logout();
 
     expect(result).toEqual({ success: true });
+    expect(isRecentlyVerified(scope)).toBe(false);
     expect(clearedCookies).toHaveLength(1);
     expect(clearedCookies[0]?.name).toBe(COOKIE_NAME);
     expect(clearedCookies[0]?.options).toMatchObject({

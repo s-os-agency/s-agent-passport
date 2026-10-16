@@ -171,6 +171,7 @@ export default function Portal() {
   const enrollPasskey = async () => {
     setEnrolling(true);
     try {
+      if ((securityQ.data?.passkeyCount ?? 0) > 0 && !(await verifyPasskey())) return;
       const options = await registerOptions.mutateAsync();
       const attResp = await webauthnRegister({ optionsJSON: options as never });
       await registerVerify.mutateAsync({ response: attResp, label: passkeyLabel.trim() || null });
@@ -790,7 +791,9 @@ export default function Portal() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => removeKey.mutate({ id: k.id })}
+                      onClick={async () => {
+                        if (await verifyPasskey()) removeKey.mutate({ id: k.id });
+                      }}
                       className="btn-press text-muted-foreground hover:text-[oklch(0.66_0.2_22)]"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -823,7 +826,9 @@ export default function Portal() {
                 <Switch
                   checked={!!securityQ.data?.vaultLockEnabled}
                   disabled={setLock.isPending || !securityQ.data}
-                  onCheckedChange={(v) => setLock.mutate({ enabled: v })}
+                  onCheckedChange={async (v) => {
+                    if (await verifyPasskey()) setLock.mutate({ enabled: v });
+                  }}
                 />
               </div>
               {securityQ.data?.vaultLockEnabled && !securityQ.data.unlocked && (

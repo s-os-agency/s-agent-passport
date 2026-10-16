@@ -2,6 +2,8 @@
 
 **Sovereign. Calibrated. Accountable.**
 
+Version **1.1.0** — [release announcement](docs/releases/1.1.0.md) · [changelog](CHANGELOG.md).
+
 Agent Passport gives an agent a scoped identity: who issued it, what it can do, when it expires, and whether it remains active. This repository contains the Passport web product, a demonstration, and the GatePass policy specification.
 
 The passport scales through **verifiable delegation**: every agent, capability, chain, and action must inherit a bounded, attributable, revocable authority trail from root policy. Routine actions proceed automatically inside the approved envelope; new classes of authority are escalated at the gate.
@@ -49,3 +51,13 @@ Never commit secrets, credential exports, bearer tokens, recovery material, or r
 [License Version 1.0](LICENSE). Internal evaluation and modification are permitted under its conditions; public forks, redistribution, hosted distribution, and commercial use require prior written permission.
 
 Owned and maintained by the project maintainers.
+
+## Passkeys and Zero Trust
+
+The portal supports passkey enrollment and a five-minute vault unlock bound to the authenticated browser session. Both ceremonies require server-verified user verification (device PIN, biometrics, or security key). Additional enrollment, credential removal, and vault-lock changes require recent verification. The export gate rechecks owner lock policy for each request and blocks when that policy is unavailable. Logout clears the session's challenges and unlock.
+
+Set `PASSKEY_ORIGIN=https://your-existing-passport-host` in production. It must be an exact HTTPS origin with no path; forwarded headers cannot choose the trusted origin. Development may use HTTP on localhost. Keep the existing hostname so enrolled credentials retain their RP scope. This release needs no database migration.
+
+Passkeys supplement existing login and GatePass authority checks. They do not certify device posture or delegate authority to agents. Challenge and verification state is in process: use a single application instance until a shared atomic TTL store is implemented. Deployment and a real-device ceremony remain unverified.
+
+The supplied Manus Browser Operator HTML is documentation; it does not establish a secure ChatGPT–Manus connection. This release dispatches no Manus work and uses no Manus task credits or API tokens. See [integration boundary and rollout checks](docs/manus-browser-operator.md).
