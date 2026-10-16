@@ -289,9 +289,11 @@ export async function removePasskey(userId: number, id: number, scope: string): 
     await db.update(users).set({ vaultLockEnabled: 0 }).where(eq(users.id, userId));
   }
   // Credential changes invalidate every existing unlock for this owner.
-  for (const key of new Set([...recentVerifications.keys(), ...regChallenges.keys(), ...authChallenges.keys()])) {
+  const scopes = Array.from(recentVerifications.keys())
+    .concat(Array.from(regChallenges.keys()), Array.from(authChallenges.keys()));
+  scopes.forEach(key => {
     if (key.startsWith(`${userId}:`)) clearVerification(key);
-  }
+  });
   return true;
 }
 
