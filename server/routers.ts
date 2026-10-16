@@ -15,6 +15,8 @@ import {
 } from "./passport";
 import * as pdb from "./passportDb";
 import {
+  clearVerification,
+  verificationScope,
   finishAuthentication,
   finishRegistration,
   isRecentlyVerified,
@@ -47,6 +49,7 @@ export const appRouter = router({
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
+      if (ctx.user && ctx.req.headers.cookie) clearVerification(verificationScope(ctx.user.id, ctx.req));
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return {
@@ -199,7 +202,7 @@ export const appRouter = router({
       return {
         vaultLockEnabled: !!(ctx.user as { vaultLockEnabled?: number }).vaultLockEnabled,
         passkeyCount: keys.length,
-        unlocked: isRecentlyVerified(ctx.user.id),
+        unlocked: isRecentlyVerified(verificationScope(ctx.user.id, ctx.req)),
         passkeys: keys,
       };
     }),
@@ -208,19 +211,20 @@ export const appRouter = router({
       return startRegistration(
         { id: ctx.user.id, name: ctx.user.name, email: ctx.user.email },
         rpID,
+        verificationScope(ctx.user.id, ctx.req),
       );
     }),
     registerVerify: protectedProcedure
       .input(z.object({ response: z.any(), label: z.string().max(128).nullable() }))
       .mutation(async ({ ctx, input }) => {
         const { rpID, origin } = rpFromRequest(ctx.req);
-        const res = await finishRegistration(ctx.user.id, input.response, rpID, origin, input.label);
+        const res = await finishRegistration(ctx.user.id, input.response, rpID, origin, input.label, verificationScope(ctx.user.id, ctx.req));
         if (!res.ok) throw new TRPCError({ code: "BAD_REQUEST", message: res.reason });
         return { success: true } as const;
       }),
     authOptions: protectedProcedure.mutation(async ({ ctx }) => {
       const { rpID } = rpFromRequest(ctx.req);
-      const options = await startAuthentication(ctx.user.id, rpID);
+      const options = await startAuthentication(ctx.user.id, rpID, verificationScope(ctx.user.id, ctx.req));
       if (!options) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "No passkeys enrolled yet." });
       return options;
     }),
@@ -228,21 +232,21 @@ export const appRouter = router({
       .input(z.object({ response: z.any() }))
       .mutation(async ({ ctx, input }) => {
         const { rpID, origin } = rpFromRequest(ctx.req);
-        const res = await finishAuthentication(ctx.user.id, input.response, rpID, origin);
+        const res = await finishAuthentication(ctx.user.id, input.response, rpID, origin, verificationScope(ctx.user.id, ctx.req));
         if (!res.ok) throw new TRPCError({ code: "BAD_REQUEST", message: res.reason });
         return { success: true } as const;
       }),
     removePasskey: protectedProcedure
       .input(z.object({ id: z.number().int() }))
       .mutation(async ({ ctx, input }) => {
-        const ok = await removePasskey(ctx.user.id, input.id);
+        const ok = await removePasskey(ctx.user.id, input.id, verificationScope(ctx.user.id, ctx.req));
         if (!ok) throw new TRPCError({ code: "NOT_FOUND" });
         return { success: true } as const;
       }),
     setVaultLock: protectedProcedure
       .input(z.object({ enabled: z.boolean() }))
       .mutation(async ({ ctx, input }) => {
-        const res = await setVaultLock(ctx.user.id, input.enabled);
+        const res = await setVaultLock(ctx.user.id, input.enabled, verificationScope(ctx.user.id, ctx.req));
         if (!res.ok) throw new TRPCError({ code: "PRECONDITION_FAILED", message: res.reason });
         return { success: true, enabled: input.enabled } as const;
       }),
@@ -257,7 +261,7 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         const p = await pdb.getPassportById(input.id);
         if (!p || p.userId !== ctx.user.id) throw new TRPCError({ code: "NOT_FOUND" });
-        const blockReason = await vaultLockBlockReason(ctx.user.id);
+        const blockReason = await vaultLockBlockReason(ctx.user.id, verificationScope(ctx.user.id, ctx.req));
         if (blockReason) throw new TRPCError({ code: "FORBIDDEN", message: blockReason });
         const payload = p.payload as unknown as PassportPayload;
         const refs = (payload.metadata?.vault_secret_refs as string[]) ?? [];

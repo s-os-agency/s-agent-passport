@@ -41,6 +41,8 @@ jobs:
         run: pnpm exec drizzle-kit migrate
       - name: Typecheck
         run: pnpm check
+      - name: Passkey and Zero Trust regression tests
+        run: pnpm exec vitest run server/webauthn.test.ts server/session.scope.test.ts server/auth.logout.test.ts
       - name: Full test suite
         run: pnpm test
       - name: Production build

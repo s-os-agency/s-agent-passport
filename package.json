@@ -1,6 +1,6 @@
 {
   "name": "s-agent-passport-demo",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "license": "SEE LICENSE IN LICENSE",
   "scripts": {

@@ -1,0 +1,42 @@
+name: Passport release metadata
+
+on:
+  pull_request:
+    paths:
+      - package.json
+      - CHANGELOG.md
+      - README.md
+      - docs/releases/**
+      - .github/workflows/passport-release.yml
+  push:
+    branches: [main]
+    paths:
+      - package.json
+      - CHANGELOG.md
+      - README.md
+      - docs/releases/**
+      - .github/workflows/passport-release.yml
+
+permissions:
+  contents: read
+
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify version, README, changelog and release announcement agree
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const {version} = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error('Expected a semantic version');
+          for (const path of ['README.md', 'CHANGELOG.md', `docs/releases/${version}.md`]) {
+            if (!fs.readFileSync(path, 'utf8').includes(version)) throw new Error(`Missing ${version} in ${path}`);
+          }
+          console.log(`Release metadata agrees on ${version}`);
+          JS
