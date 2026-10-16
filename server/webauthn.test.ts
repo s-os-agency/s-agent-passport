@@ -23,7 +23,12 @@ function database(rows: unknown[]) {
   select.from.mockReturnValue(select);
   select.where.mockReturnValue(Object.assign(Promise.resolve(rows), { limit: select.limit }));
   select.limit.mockResolvedValue(rows);
-  const db = { select: vi.fn(() => select), insert: vi.fn(), delete: vi.fn(), update: vi.fn() };
+  const db = {
+    select: vi.fn(() => select),
+    insert: vi.fn(() => ({ values: vi.fn().mockResolvedValue(undefined) })),
+    delete: vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) })),
+    update: vi.fn(() => ({ set: vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) })) })),
+  };
   vi.mocked(getDb).mockResolvedValue(db as never);
   return db;
 }
@@ -130,5 +135,43 @@ describe("ceremony guards", () => {
     await startAuthentication(7, "example.com", scope);
     expect((await finishAuthentication(7, { id: "cred" } as never, "example.com", "https://example.com", scope)).ok).toBe(false);
     expect(verifyAuthenticationResponse).toHaveBeenCalledTimes(1);
+  });
+});
+
+
+describe("verified ceremony persistence", () => {
+  it("unlocks only after verified enrollment is persisted", async () => {
+    const db = database([]);
+    vi.mocked(verifyRegistrationResponse).mockResolvedValueOnce({
+      verified: true, registrationInfo: {
+        credential: { id: "new-credential", publicKey: new Uint8Array([1, 2]), counter: 0 },
+        credentialDeviceType: "multiDevice", credentialBackedUp: true,
+      },
+    } as never);
+    await startRegistration({ id: 7, name: null, email: null }, "example.com", scope);
+    expect((await finishRegistration(7, {} as never, "example.com", "https://example.com", null, scope)).ok).toBe(true);
+    expect(db.insert).toHaveBeenCalledTimes(1);
+    expect(isRecentlyVerified(scope)).toBe(true);
+    expect(isRecentlyVerified(other)).toBe(false);
+  });
+  it("persists the authentication counter before unlocking", async () => {
+    const db = database([{ id: 1, userId: 7, credentialId: "cred", publicKey: "AA", counter: 0 }]);
+    vi.mocked(verifyAuthenticationResponse).mockResolvedValueOnce({
+      verified: true, authenticationInfo: { newCounter: 1 },
+    } as never);
+    await startAuthentication(7, "example.com", scope);
+    expect((await finishAuthentication(7, { id: "cred" } as never, "example.com", "https://example.com", scope)).ok).toBe(true);
+    expect(db.update).toHaveBeenCalledTimes(1);
+    expect(isRecentlyVerified(scope)).toBe(true);
+    expect(isRecentlyVerified(other)).toBe(false);
+  });
+  it("invalidates all owner sessions when a credential is removed", async () => {
+    database([{ id: 1, userId: 7 }]);
+    markVerified(scope); markVerified(other); markVerified("8:unrelated-session");
+    expect(await removePasskey(7, 1, scope)).toBe(true);
+    expect(isRecentlyVerified(scope)).toBe(false);
+    expect(isRecentlyVerified(other)).toBe(false);
+    expect(isRecentlyVerified("8:unrelated-session")).toBe(true);
+    clearVerification("8:unrelated-session");
   });
 });

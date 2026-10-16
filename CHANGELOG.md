@@ -11,3 +11,5 @@
 - Document the Manus Browser Operator boundary without dispatching Manus work.
 
 Deployment and real-device verification are pending. See [release announcement](docs/releases/1.1.0.md).
+
+New account sessions receive a random JWT ID, including simultaneous logins. Removing a credential clears outstanding challenges and unlocks across all of that owner’s sessions.
