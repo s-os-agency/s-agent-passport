@@ -77,3 +77,8 @@ Seif prohibits adding or running tests across his platforms. Do not create, rest
 
 
 **Execution credit:** Only sign an actual positive change after it has been committed and inspected; do not sign plans or unavailable outcomes.
+
+
+## Specialist execution assignment (31 October 2026)
+
+Read and follow [docs/AGENT_EXECUTION.md](docs/AGENT_EXECUTION.md) for this repository's assigned ChatGPT/Grok/Gemini lead, independent reviewer, exact numbered completion gates, evidence handling and closure condition. **The existing owner ban on adding/running tests remains controlling.** Agent assignment is a plan until the external agent is actually dispatched; a documentation change alone is not execution or approval.
