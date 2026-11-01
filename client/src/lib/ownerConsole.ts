@@ -265,7 +265,7 @@ export function buildOwnerDocumentHtml(req: PassportRequest): string {
   const secretRows =
     req.secret_keys.length > 0
       ? req.secret_keys
-          .map((k) => `<tr><td class="mono">${esc(k)}</td><td class="mono">value sealed in owner vault — provisioned as env var at runtime</td></tr>`)
+          .map((k) => `<tr><td class="mono">${esc(k)}</td><td class="mono">Key stays in your private vault</td></tr>`)
           .join("")
       : `<tr><td colspan="2" class="mono muted">No vault secrets granted to this agent.</td></tr>`;
 
@@ -367,7 +367,7 @@ export function buildOwnerDocumentHtml(req: PassportRequest): string {
     <tr><td class="mono">integrity checksum</td><td class="mono">${esc(p.checksum)}</td></tr>
   </table>
 
-  <h2>6 · Provenance Trail</h2>
+  <h2>6 · ID history</h2>
   <table>
     <tr><th>Event</th><th>Actor</th><th>Timestamp</th></tr>
     ${provRows}
@@ -404,3 +404,4 @@ export function openOwnerPdf(req: PassportRequest) {
   w.document.close();
   return true;
 }
+

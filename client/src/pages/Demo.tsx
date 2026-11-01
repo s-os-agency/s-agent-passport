@@ -65,7 +65,7 @@ const SCHEMA_FIELDS: { name: string; type: string; note: string }[] = [
   { name: "permissions", type: "dict[str,bool]", note: "what the agent may TOUCH" },
   { name: "memory_bridge_ref", type: "str | None", note: "calibration memory link" },
   { name: "calibration_level", type: "int 0–7", note: "S-OS trust depth" },
-  { name: "provenance", type: "list[event]", note: "append-only audit trail" },
+  { name: "provenance", type: "list[event]", note: "Saved change history" },
   { name: "parent_passport_id", type: "str | None", note: "spawn lineage" },
   { name: "status", type: "enum", note: "active · paused · revoked · archived · expired" },
   { name: "checksum", type: "sha256[:16]", note: "identity-core integrity" },
@@ -385,9 +385,7 @@ export default function Demo() {
               <Stamp tone="ink" className="text-base sm:text-lg">Inspection required</Stamp>
             </div>
             <p className="font-mono text-sm sm:text-base text-muted-foreground max-w-xl leading-relaxed mb-8 rise-in" style={{ animationDelay: "120ms" }}>
-              Every agent in the swarm carries a verifiable credential — capabilities,
-              permissions, lineage, Ed25519 signature. The team lead gate inspects it
-              before any tool or memory is touched.
+              Each agent has a signed ID with the tools and permissions you granted.
             </p>
             <div className="flex flex-wrap items-center gap-4 rise-in" style={{ animationDelay: "180ms" }}>
               <Button
@@ -943,3 +941,5 @@ export default function Demo() {
     </div>
   );
 }
+
+

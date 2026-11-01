@@ -342,7 +342,7 @@ export function validateHandoff(
 
 export const FACTORY_PRESETS: Record<string, IssueOptions & { label: string; blurb: string }> = {
   swarm_orchestrator: {
-    label: "Swarm Orchestrator",
+    label: "Team leader",
     blurb: "issue_swarm_orchestrator() — calibration L5, can spawn children, deploy escalates.",
     agent_name: "s_orchestrator_v3",
     agent_type: "orchestrator",
@@ -397,3 +397,4 @@ export function mrzLine(p: Passport): string {
     .padEnd(88, "<")
     .slice(0, 88);
 }
+

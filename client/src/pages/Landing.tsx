@@ -423,7 +423,7 @@ export default function Landing() {
             {[
               "Human approval before minting",
               "Key names only in documents",
-              "Provenance on every credential",
+              "History for every agent ID",
               "Registry-verified signatures",
             ].map((t) => (
               <span key={t} className="inline-flex items-center gap-2 font-mono text-[12px] text-muted-foreground">
@@ -499,3 +499,5 @@ export default function Landing() {
     </div>
   );
 }
+
+

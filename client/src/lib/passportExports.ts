@@ -68,7 +68,7 @@ export function buildEmbedBundle(data: ExportData): string {
   const refs = (p.metadata?.vault_secret_refs as string[]) ?? [];
   const secretLines =
     refs.length > 0
-      ? refs.map((k) => `#   export ${k}=<value sealed in your vault — provision at runtime>`).join("\n")
+      ? refs.map((k) => `#   export ${k}=<value sealed in your vault — shared only when needed>`).join("\n")
       : "#   (no vault secrets granted to this agent)";
 
   return `# ============================================================
@@ -137,7 +137,7 @@ export function buildOwnerDocumentHtml(data: ExportData, toolLabels: { label: st
   const secretRows =
     refs.length > 0
       ? refs
-          .map((k) => `<tr><td class="mono">${esc(k)}</td><td class="mono">value sealed in owner vault — provisioned as env var at runtime</td></tr>`)
+          .map((k) => `<tr><td class="mono">${esc(k)}</td><td class="mono">Key stays in your private vault</td></tr>`)
           .join("")
       : `<tr><td colspan="2" class="mono muted">No vault secrets granted to this agent.</td></tr>`;
 
@@ -243,7 +243,7 @@ export function buildOwnerDocumentHtml(data: ExportData, toolLabels: { label: st
     <tr><td class="mono">integrity checksum</td><td class="mono">${esc(p.checksum)}</td></tr>
   </table>
 
-  <h2>6 · Provenance Trail</h2>
+  <h2>6 · ID history</h2>
   <table>
     <tr><th>Event</th><th>Actor</th><th>Timestamp</th></tr>
     ${provRows}
@@ -279,3 +279,4 @@ export function openPrintableDoc(html: string): boolean {
   w.document.close();
   return true;
 }
+
