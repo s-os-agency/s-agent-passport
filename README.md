@@ -1,6 +1,6 @@
 # Agent Passport
 
-**Sovereign. Calibrated. Accountable.**
+**Owner controlled. Calibrated. Accountable.**
 
 Agent Passport gives an agent a scoped identity: who issued it, what it can do, when it expires, and whether it remains active. This repository contains the Passport web product, a demonstration, and the GatePass policy specification.
 
@@ -13,7 +13,7 @@ The passport scales through **verifiable delegation**: every agent, capability, 
 - **Approval desk** (`/admin`): administrator review and revocation.
 - **Interactive demo** (`/demo`): illustrates issuance and gate decisions; demo behavior is not a live authorization decision.
 - **GatePass** (`agents/s-gatepass/`): policy and schema for an access broker. See its [README](agents/s-gatepass/README.md) for the boundary and activation requirements.
-- **Governed delegation** (`governance/`): the canonical authority envelope, execution-lane policy, runtime evaluator, and decision-receipt contract. Start at [governance/README.md](governance/README.md).
+- **Governed delegation** (`governance/`): the canonical authority envelope, execution-lane policy, system evaluator, and decision-receipt contract. Start at [governance/README.md](governance/README.md).
 
 The web app uses React, Vite, tRPC, Express, Drizzle, and MySQL. Its web issuance and vault implementation lives in `server/passport.ts`, `server/passportDb.ts`, and `server/routers.ts`. The Python Passport package and the Supabase `public.agent_passports` registry described in project notes are separate components; this web app's Drizzle tables are not automatically the same registry.
 
@@ -33,7 +33,7 @@ Provide the required environment variables through your local deployment configu
 ## Passport flow
 
 1. The owner submits an agent name, type, purpose, requested tools, and optional expiry.
-2. An administrator reviews the request. Approval issues a passport with an ID, capabilities, permission flags, provenance, checksum, and issuer signature.
+2. An administrator reviews the request. Approval issues a passport with an ID, capabilities, permission flags, source history, checksum, and issuer signature.
 3. The owner can view and export issued records. An administrator can revoke them.
 4. A relying gate must check current registry status, expiry, signature, and required capabilities and permissions at the point of use. A downloadable passport alone does not grant access.
 5. The gate evaluates the current authority envelope: Green actions proceed, Yellow actions need independent validation, and Red actions require explicit owner approval. Every decision emits a hash-linked receipt.

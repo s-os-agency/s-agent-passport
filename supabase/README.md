@@ -1,4 +1,4 @@
-# Supabase control plane
+# Supabase control panel
 
 The official Passport portal is **https://s-agentpass.online/**.
 
@@ -38,6 +38,6 @@ The function reads the existing Passport registry and live authority control rec
 
 ## Deployment
 
-Apply the migration before deploying the function. The function is deployed with `verify_jwt: true` and additionally rejects non-service-role JWTs. It uses the Supabase runtime credentials only; no secret is stored in this repository.
+Apply the migration before deploying the function. The function is deployed with `verify_jwt: true` and additionally rejects non-service-role JWTs. It uses the Supabase system credentials only; no secret is stored in this repository.
 
 The portal's application server should call the function at the point of execution, after it verifies the correct Passport issuer signature. A downloaded Passport document alone is never authorization.

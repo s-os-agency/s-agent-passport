@@ -51,7 +51,7 @@ const BENEFITS = [
   {
     icon: Vault,
     title: "One sealed vault",
-    body: "Add each secret key once. It's encrypted at rest (AES-256-GCM) and never printed in any document — agents receive it as an environment variable at runtime.",
+    body: "Add each secret key once. It's encrypted at rest (AES-256-GCM) and never printed in any document — agents receive it as an environment variable when the agent runs.",
   },
   {
     icon: Wrench,
@@ -124,11 +124,11 @@ const SECURITY = [
 const FAQS = [
   {
     q: "Where do my secret keys actually live?",
-    a: "In your private vault, encrypted at rest with AES-256-GCM. They are never embedded in any passport document — the passport carries key names only, and your agent receives values as environment variables at runtime.",
+    a: "In your private vault, encrypted at rest with AES-256-GCM. They are never embedded in any passport document — the passport carries key names only, and your agent receives values as environment variables when the agent runs.",
   },
   {
     q: "What exactly is inside a passport?",
-    a: "A signed, checksummed credential: agent name and type, the exact tools you granted, permission flags, vault key references (names only), TTL, provenance log, and the registry signature.",
+    a: "A signed, checksummed credential: agent name and type, the exact tools you granted, permission flags, vault key references (names only), TTL, source history log, and the registry signature.",
   },
   {
     q: "What happens when I revoke a passport?",
@@ -487,7 +487,7 @@ export default function Landing() {
             <img src={LOGO} alt="S/" className="h-9 w-9 object-contain" />
             <div>
               <div className="font-display font-bold">Agent Passport</div>
-              <div className="label-mono">Sovereign · Calibrated · Accountable</div>
+              <div className="label-mono">Owner controlled · Calibrated · Accountable</div>
             </div>
           </div>
           <div className="flex items-center gap-6 label-mono">

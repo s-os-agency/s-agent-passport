@@ -7,7 +7,7 @@ This folder is the canonical registry for Agency model assets.
 - GitHub is the source of truth.
 - Google Sheets is the operating workbook.
 - The owned knowledge graph renderer is the visual relationship map.
-- Supabase is a prepared runtime mirror, not the canonical record.
+- Supabase is a prepared system mirror, not the canonical record.
 - No model asset becomes runtime-active without owner approval and a passport scope.
 
 ## Connected Workbook

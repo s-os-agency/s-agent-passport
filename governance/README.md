@@ -33,7 +33,7 @@ verified passport + current revocation state
 
 A request missing an exact capability, matching purpose, valid expiry, allowed domain, or in-range delegation depth is denied. A child may only receive a strict subset of its parent's effective authority.
 
-## Runtime integration
+## System integration
 
 `server/governance.ts` provides a pure evaluator for use at every relying gate:
 
@@ -57,7 +57,7 @@ The evaluator is not itself a credential broker. GatePass remains responsible fo
 
 ## Cockpit contract
 
-The browser governance cockpit should surface live effective state, not merely the original issued document:
+The browser management cockpit should surface live effective state, not merely the original issued document:
 
 - active, quarantined, revoked, and expired agents;
 - owner, purpose, root policy, and expiry;

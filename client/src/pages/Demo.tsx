@@ -58,7 +58,7 @@ const LOGO = "/manus-storage/s-slash-logo_80b146d9.png";
 /* ============ 01 · Schema booklet data ============ */
 const SCHEMA_FIELDS: { name: string; type: string; note: string }[] = [
   { name: "passport_id", type: "str", note: "S-PASS-{12 hex} · immutable" },
-  { name: "agent_name / agent_type", type: "str / enum", note: "10 sovereign agent types" },
+  { name: "agent_name / agent_type", type: "str / enum", note: "10 owner controlled agent types" },
   { name: "creator", type: "str", note: '"Seif Alsoub / S/" · immutable' },
   { name: "issued_at / expires_at", type: "datetime", note: "UTC · optional TTL" },
   { name: "capabilities", type: "list[str]", note: "what the agent may DO" },
@@ -69,7 +69,7 @@ const SCHEMA_FIELDS: { name: string; type: string; note: string }[] = [
   { name: "parent_passport_id", type: "str | None", note: "spawn lineage" },
   { name: "status", type: "enum", note: "active · paused · revoked · archived · expired" },
   { name: "checksum", type: "sha256[:16]", note: "identity-core integrity" },
-  { name: "signature", type: "Ed25519", note: "opt-in sovereign signing" },
+  { name: "signature", type: "Ed25519", note: "opt-in owner controlled signing" },
 ];
 
 /* ============ Integration annex code samples ============ */
@@ -251,7 +251,7 @@ export default function Demo() {
   };
 
   const spawnScoped = () => {
-    if (!parentP) return toast.error("Issue the orchestrator first.");
+    if (!parentP) return toast.error("Issue the team lead first.");
     try {
       const c = spawnChild(parentP, {
         child_name: `analyst_child_${children.length + 1}`,
@@ -270,7 +270,7 @@ export default function Demo() {
   };
 
   const spawnEscalated = () => {
-    if (!parentP) return toast.error("Issue the orchestrator first.");
+    if (!parentP) return toast.error("Issue the team lead first.");
     try {
       spawnChild(parentP, {
         child_name: "rogue_deployer",
@@ -373,7 +373,7 @@ export default function Demo() {
           <div className="max-w-3xl">
             <div className="flex items-center gap-3 mb-6 rise-in">
               <img src={LOGO} alt="S/" className="h-10 w-10 object-contain" />
-              <span className="label-mono text-primary">S-OS · Sovereign Identity Layer</span>
+              <span className="label-mono text-primary">S-OS · Identity you control Layer</span>
               <span className="h-px flex-1 max-w-24 bg-primary/50" />
             </div>
             <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight uppercase leading-[1.02] mb-4 rise-in" style={{ animationDelay: "60ms" }}>
@@ -386,7 +386,7 @@ export default function Demo() {
             </div>
             <p className="font-mono text-sm sm:text-base text-muted-foreground max-w-xl leading-relaxed mb-8 rise-in" style={{ animationDelay: "120ms" }}>
               Every agent in the swarm carries a verifiable credential — capabilities,
-              permissions, lineage, Ed25519 signature. The orchestrator gate inspects it
+              permissions, lineage, Ed25519 signature. The team lead gate inspects it
               before any tool or memory is touched.
             </p>
             <div className="flex flex-wrap items-center gap-4 rise-in" style={{ animationDelay: "180ms" }}>
@@ -424,7 +424,7 @@ export default function Demo() {
         index="01"
         code="PAGE·01/07"
         kicker="The document"
-        title="One credential. Thirteen sovereign fields."
+        title="One credential. Thirteen owner controlled fields."
       >
         <div className="grid lg:grid-cols-[1fr_380px] gap-10 items-start">
           <div className="panel doc-corners rounded-sm overflow-hidden">
@@ -679,7 +679,7 @@ export default function Demo() {
           <div className="space-y-4">
             <div className="panel rounded-sm p-5 space-y-3">
               <Button onClick={makeParent} className="btn-press w-full font-mono uppercase tracking-widest text-xs rounded-[3px]">
-                <GitBranch className="h-4 w-4 mr-1.5" /> 1 · Issue orchestrator
+                <GitBranch className="h-4 w-4 mr-1.5" /> 1 · Issue team lead
               </Button>
               <Button onClick={spawnScoped} variant="outline" className="btn-press w-full font-mono uppercase tracking-widest text-xs rounded-[3px] border-primary/50 text-primary hover:bg-primary/10">
                 2 · spawn_child() within scope
@@ -725,7 +725,7 @@ export default function Demo() {
             ) : (
               <div className="panel rounded-sm min-h-[280px] flex flex-col items-center justify-center gap-3 border-dashed">
                 <GitBranch className="h-10 w-10 text-muted-foreground/40" strokeWidth={1.25} />
-                <p className="font-mono text-sm text-muted-foreground">Lineage wall empty. Issue the orchestrator to begin.</p>
+                <p className="font-mono text-sm text-muted-foreground">Lineage wall empty. Issue the team lead to begin.</p>
               </div>
             )}
           </div>
@@ -768,7 +768,7 @@ export default function Demo() {
               </div>
               <p className="font-mono text-[11px] text-muted-foreground mt-4">
                 transition() enforces the matrix: revoked and archived are terminal ·
-                expired can only be archived · every move appends provenance.
+                expired can only be archived · every move appends source history.
               </p>
             </div>
 
@@ -789,7 +789,7 @@ export default function Demo() {
             </div>
 
             <div className="panel rounded-sm p-4 min-h-[120px]">
-              <div className="label-mono mb-2">Provenance log</div>
+              <div className="label-mono mb-2">Source history log</div>
               <div className="space-y-1 font-mono text-[12px]">
                 {lifeLog.length === 0 && <span className="text-muted-foreground">No subject issued yet.</span>}
                 {lifeLog.map((l, i) => (
@@ -884,7 +884,7 @@ export default function Demo() {
             <CodeBlock code={CODE_QUICKSTART} />
           </div>
           <div>
-            <div className="label-mono mb-2 text-primary">Orchestrator gate</div>
+            <div className="label-mono mb-2 text-primary">Team lead gate</div>
             <CodeBlock code={CODE_GATE} />
           </div>
           <div>
@@ -911,7 +911,7 @@ export default function Demo() {
             },
             {
               icon: KeyRound,
-              title: "Ed25519 sovereign keys",
+              title: "Ed25519 owner controlled keys",
               body: "Local issuer keypair at ~/.s-pass/keys — no external CA. Signatures verified at every gate.",
             },
           ].map(({ icon: Icon, title, body }) => (
@@ -932,7 +932,7 @@ export default function Demo() {
             <img src={LOGO} alt="S/" className="h-9 w-9 object-contain" />
             <div>
               <div className="font-display font-bold">Agent Passport</div>
-              <div className="label-mono">Sovereign · Calibrated · Accountable</div>
+              <div className="label-mono">Owner controlled · Calibrated · Accountable</div>
             </div>
           </div>
           <div className="font-mono text-[12px] text-muted-foreground">
