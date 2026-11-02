@@ -6,6 +6,14 @@ Seif prohibits adding or running tests across his platforms. Do not create, rest
 
 ---
 
+## Execution rule — 2 November 2026
+
+Carry the authorized task through to its requested result. Fill in records while working; a form, named stage, unavailable reviewer or proposed staffing role is not a reason to stop. A check is required only when omitting it would cause a specific failure, break an existing access restriction or exceed the owner's authorization. State that concrete reason.
+
+Use existing authorized access. Do not broaden permissions, disclose credentials or infer approval from silence. If a necessary fact is missing, retrieve it from available sources first. If one action still needs owner input, identify the exact action and continue independent authorized work.
+
+Inspect source and saved changes for documentation work. For a live release, also inspect the provider's deployment result and the running service. Keep source changes, deployment and observed operation as separate facts. Do not add or run software test suites. Record the actual improvement, its evidence and the executing agent. Administrative records may follow execution; they do not create another approval queue.
+
 ## Proposed work assignments — 31 October 2026
 
 **Portfolio number:** 3. **Repository:** `s-os-agency/s-agent-passport`.  
@@ -20,12 +28,12 @@ Seif prohibits adding or running tests across his platforms. Do not create, rest
 
 - **ChatGPT (execution lead):** Own issuer, RBAC, delegation, revocation and policy integration. Carry out authorized reversible source changes within the existing repository, identify exact constraints, capture immutable commit links and actual runtime evidence.
 - **Gemini (independent specialist):** Gemini reviews owner-facing portal usability and clarity without owning permissions. Provide a source-grounded review and a precise handoff. Do not impersonate the primary model or assert work has been executed by it.
-- **Human responsibility:** Identity & Security Engineer owns verification criteria, deployment readiness and any owner decision; this role is proposed and is not a claim of an actual hire.
+- **Human responsibility:** The owner retains owner decisions. The proposed Identity & Security Engineer role is unstaffed and must not block authorized work.
 
 ### Instructions for actual work
 
 1. Read the current code, `AGENTS.md`, runbook, dependency locks and latest deployment before changing anything. Keep the October 25 owner restriction intact: **do not add or run tests or test suites.** Replace preexisting test-oriented acceptance wording with real source inspections, build/config review where permitted, deployment status, non-test live observations, persisted records and independently reproducible receipts; otherwise state **NOT VERIFIED**.
-2. Work the following repository-specific gates in order. Do not fabricate CI, live services, customer names, actual paid orders, verified PayPal/Ziina connections, or a deployment simply because documentation exists.
+2. Use the following work items to track evidence. Execute independent authorized items without waiting for unrelated items or proposed staffing. Do not fabricate CI, live services, customer names, actual paid orders, verified PayPal/Ziina connections, or a deployment simply because documentation exists.
 3. For each completed gate, attach source SHA, actual evidence URL, environment, UTC verification time and the responsible executing agent to the existing workbook. A gate is `VERIFIED` only if its acceptance criteria genuinely hold, its evidence link is accessible and the timestamp is recorded.
 4. Hand off from ChatGPT to Gemini by supplying the file diff/commit, open gate numbers and evidence gaps. Independent review cannot authorize a production change, owner approval, purchase or an account connection.
 5. Preserve all secrets in provider-managed stores. No real customers are inferred from CRM leads, prospects, demos, or payment-link creation. Production cutover and sensitive authority changes require their actual external authorization.
@@ -35,8 +43,8 @@ Seif prohibits adding or running tests across his platforms. Do not create, rest
 
 **3.1 — Source**
 
-- Action: Build and test canonical issuer web/server and database migrations; compare duplicate passport-server surface.
-- Acceptance: Clean build/test and documented canonical source, DB schema and contract diff.
+- Action: Inspect the canonical issuer website, server and database migrations; compare duplicate passport-server code.
+- Acceptance: Document the actual source, database schema, build result when permitted and differences from duplicate code. Do not run software tests.
 - State: **OPEN until independently evidenced**.
 
 **3.2 — Sign-in and permissions**
@@ -54,7 +62,7 @@ Seif prohibits adding or running tests across his platforms. Do not create, rest
 **3.4 — Connection to other services**
 
 - Action: Connect S-OS + one real worker to signed Passport authorization and revocation checks.
-- Acceptance: Downstream worker accepts valid scope, rejects invalid/revoked scope with documented tests.
+- Acceptance: Downstream worker accepts valid scope, rejects invalid/revoked scope with actual authorized operational evidence.
 - State: **OPEN until independently evidenced**.
 
 **3.5 — Deployment**
