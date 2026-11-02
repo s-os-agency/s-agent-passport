@@ -6,12 +6,20 @@
 **Existing release record:** https://docs.google.com/spreadsheets/d/1MMk4Tx0k5rS7e_vOIFg-Dg022VEqXsdwqHibT9-3uOI/edit#gid=20261035
 **Suggested work:** Complete the identity service; **Proposed human role (not staffed):** Identity & Security Engineer.
 
+## Execution rule — 2 November 2026
+
+Carry the authorized task through to its requested result. Fill in records while working; a form, named stage, unavailable reviewer or proposed staffing role is not a reason to stop. A check is required only when omitting it would cause a specific failure, break an existing access restriction or exceed the owner's authorization. State that concrete reason.
+
+Use existing authorized access. Do not broaden permissions, disclose credentials or infer approval from silence. If a necessary fact is missing, retrieve it from available sources first. If one action still needs owner input, identify the exact action and continue independent authorized work.
+
+Inspect source and saved changes for documentation work. For a live release, also inspect the provider's deployment result and the running service. Keep source changes, deployment and observed operation as separate facts. Do not add or run software test suites. Record the actual improvement, its evidence and the executing agent. Administrative records may follow execution; they do not create another approval queue.
+
 ## Rules for actual work
 - Existing root AGENTS.md owner instruction controls: do not add, restore or run software test suites, test-only workflows or scaffolding. Existing spreadsheet references to tests are superseded: obtain real source/build/configuration and operational readback evidence within the owner policy. Never claim tests were run or passed.
 - Inspect canonical README, source, existing diffs and deployments before changes. Make the smallest reversible implementation change required. Do not merely write plans or invent launch statuses.
 - The named lead is a proposed execution assignment, **not proof of an active external agent session**, OpenRouter invocation, or authority to use another agent's account. A reviewer is an independent second-pass assignment, not an approval already provided.
 - Use only scoped provider access actually available. No blind deployment, destructive migrations, new permissions, purchases or exposure of credentials. Preserve backups and rollback.
-- Attach evidence URL, UTC date, version/commit, deployed environment and observed result to the corresponding Exact Completion Gates row. Mark VERIFIED only for evidence-backed completion. Leave other gates OPEN; no fabricated real customer, revenue, PayPal or Ziina status.
+- Attach evidence URL, UTC date, version/commit, deployed environment and observed result to the corresponding work-item record. Mark VERIFIED only for evidence-backed completion. Leave other gates OPEN; no fabricated real customer, revenue, PayPal or Ziina status.
 - Production launch requires a provider-backed deployment receipt and actual live runtime observation, not a green document or UI screenshot.
 
 ## Work that still needs evidence
@@ -52,6 +60,6 @@
 **Proof needed:** Real source or commit, environment, time and observed result; add independent review only if it actually happened. Record verified results in the existing sheet. **Recorded state: OPEN; not rechecked here.**
 
 ## How to report completed work
-Update each gate's verification state in Google Sheets and attach proof. Distinguish implementation from launch, customer acceptance from inquiries and settled payments from checkout creation. The lead produces the change receipt; the reviewer checks evidence independently. Do not announce completion until all required applicable gates pass. Report any unavoidable external authorization boundary specifically.
+Record completed work and evidence in the existing sheet when available. An unavailable sheet must not stop authorized implementation. Distinguish implementation from launch, customer acceptance from inquiries and settled payments from checkout creation. The lead produces the change receipt; the reviewer checks evidence independently. Report the requested outcome as complete only when its applicable acceptance criteria have direct evidence. Do not make unrelated commercial items or a proposed reviewer prerequisites for internal work. Report any unavoidable external authorization boundary specifically.
 
 **Original document author:** GPT-6. This text does not prove a launch, an agent assignment or any running service.
