@@ -1,0 +1,4 @@
+[submodule "passport-server"]
+	path = packages/passport-server
+	url = https://github.com/s-os-agency/s-agent-passport-server.git
+	update = checkout

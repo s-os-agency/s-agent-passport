@@ -17,6 +17,10 @@ The passport scales through **verifiable delegation**: every agent, capability, 
 
 The web app uses React, Vite, tRPC, Express, Drizzle, and MySQL. Its web issuance and vault implementation lives in `server/passport.ts`, `server/passportDb.ts`, and `server/routers.ts`. The Python Passport package and the Supabase `public.agent_passports` registry described in project notes are separate components; this web app's Drizzle tables are not automatically the same registry.
 
+## Server package
+
+The private server project is included as a pinned component at `packages/passport-server`. Use an authenticated recursive checkout to obtain it. See [server package and source provenance](docs/PASSPORT_SERVER_PACKAGE.md) for initialization, independent build commands and pin updates. This package reference preserves private source access and history; it does not replace the existing root `server/` or automatically connect two runtimes.
+
 ## Local development
 
 Requirements: Node.js, pnpm, a MySQL database, and the application authentication configuration.
