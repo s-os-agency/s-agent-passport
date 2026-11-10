@@ -24,6 +24,7 @@ import {
 } from "@/lib/passportExports";
 import {
   ArrowLeft,
+  Ban,
   FileDown,
   FileText,
   Fingerprint,
@@ -223,6 +224,25 @@ export default function Portal() {
       throw e;
     }
   };
+  const [revokingId, setRevokingId] = useState<number | null>(null);
+  const revokeMine = trpc.passports.revokeMine.useMutation({
+    onSuccess: () => {
+      utils.requests.mine.invalidate();
+      utils.passports.mine.invalidate();
+      setRevokingId(null);
+      toast.success("Passport revoked.");
+    },
+    onError: (error) => {
+      setRevokingId(null);
+      toast.error(error.message);
+    },
+  });
+  const doRevoke = (passportRowId: number, agentName: string) => {
+    if (revokeMine.isPending) return;
+    setRevokingId(passportRowId);
+    revokeMine.mutate({ id: passportRowId, reason: `Revoked by owner for ${agentName}` });
+  };
+
   const doDownload = async (passportRowId: number, kind: "pdf" | "embed" | "env") => {
     setExportingId(passportRowId);
     try {
@@ -718,6 +738,18 @@ export default function Portal() {
                     >
                       <KeyRound className="h-3.5 w-3.5 mr-1.5" /> Vault .env
                     </Button>
+                    {r.passport.status === "active" && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={revokeMine.isPending}
+                        onClick={() => doRevoke(r.passport!.id, r.agentName)}
+                        className="btn-press font-mono text-[11px] uppercase tracking-wider text-[oklch(0.7_0.17_22)] hover:text-[oklch(0.78_0.17_22)]"
+                      >
+                        {revokingId === r.passport.id ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Ban className="h-3.5 w-3.5 mr-1.5" />}
+                        Revoke
+                      </Button>
+                    )}
                     {r.passport.status !== "active" && (
                       <Stamp tone="deny" className="text-[10px]">{r.passport.status}</Stamp>
                     )}

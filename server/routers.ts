@@ -140,36 +140,37 @@ export const appRouter = router({
     approve: adminProcedure
       .input(z.object({ requestId: z.number().int() }))
       .mutation(async ({ ctx, input }) => {
-        const req = await pdb.getRequestById(input.requestId);
-        if (!req) throw new TRPCError({ code: "NOT_FOUND" });
-        if (req.status !== "pending") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Request already decided." });
-
-        const payload = mintPassport({
-          agentName: req.agentName,
-          agentType: req.agentType,
-          toolIds: req.toolIds,
-          secretKeys: req.secretKeys,
-          ttlHours: req.ttlHours,
-          purpose: req.purpose ?? "",
-          ownerName: String(req.userId),
-          ownerOpenId: "",
-          approvedBy: ctx.user.name || "Admin",
+        const decidedBy = ctx.user.name || "Admin";
+        const result = await pdb.approveRequest(input.requestId, decidedBy, (req) => {
+          const payload = mintPassport({
+            agentName: req.agentName,
+            agentType: req.agentType,
+            toolIds: req.toolIds,
+            secretKeys: req.secretKeys,
+            ttlHours: req.ttlHours,
+            purpose: req.purpose ?? "",
+            ownerName: String(req.userId),
+            ownerOpenId: "",
+            approvedBy: decidedBy,
+          });
+          return {
+            passportId: payload.passport_id,
+            requestId: req.id,
+            userId: req.userId,
+            agentName: req.agentName,
+            agentType: req.agentType,
+            payload: payload as unknown as Record<string, unknown>,
+            checksum: payload.checksum,
+            signature: payload.signature,
+            status: "active",
+            expiresAt: payload.expires_at ? new Date(payload.expires_at) : null,
+          };
         });
-
-        await pdb.decideRequest(input.requestId, "approved", ctx.user.name || "Admin");
-        await pdb.insertPassport({
-          passportId: payload.passport_id,
-          requestId: req.id,
-          userId: req.userId,
-          agentName: req.agentName,
-          agentType: req.agentType,
-          payload: payload as unknown as Record<string, unknown>,
-          checksum: payload.checksum,
-          signature: payload.signature,
-          status: "active",
-          expiresAt: payload.expires_at ? new Date(payload.expires_at) : null,
-        });
-        return { success: true, passportId: payload.passport_id } as const;
+        if (result.status === "not_found") throw new TRPCError({ code: "NOT_FOUND" });
+        if (result.status === "already_decided") {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Request already decided." });
+        }
+        return { success: true, passportId: result.passportId } as const;
       }),
     deny: adminProcedure
       .input(z.object({ requestId: z.number().int(), reason: z.string().min(2).max(1000) }))
@@ -177,7 +178,10 @@ export const appRouter = router({
         const req = await pdb.getRequestById(input.requestId);
         if (!req) throw new TRPCError({ code: "NOT_FOUND" });
         if (req.status !== "pending") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Request already decided." });
-        await pdb.decideRequest(input.requestId, "denied", ctx.user.name || "Admin", input.reason);
+        const decided = await pdb.decideRequest(input.requestId, "denied", ctx.user.name || "Admin", input.reason);
+        if (!decided) {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Request already decided." });
+        }
         return { success: true } as const;
       }),
     allPassports: adminProcedure.query(() => pdb.listAllPassports()),
@@ -251,6 +255,15 @@ export const appRouter = router({
   /* ===== Issued passports (owner side) ===== */
   passports: router({
     mine: protectedProcedure.query(({ ctx }) => pdb.listMyPassports(ctx.user.id)),
+    revokeMine: protectedProcedure
+      .input(z.object({ id: z.number().int(), reason: z.string().min(2).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        const p = await pdb.getPassportById(input.id);
+        if (!p || p.userId !== ctx.user.id) throw new TRPCError({ code: "NOT_FOUND" });
+        if (p.status !== "active") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Passport is not active." });
+        await pdb.revokePassport(input.id, input.reason);
+        return { success: true } as const;
+      }),
     /** Full payload + decrypted vault values for the embed bundle download. */
     exportData: protectedProcedure
       .input(z.object({ id: z.number().int() }))
