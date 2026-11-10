@@ -6,6 +6,7 @@ import {
   passportRequests,
   passports,
   vaultSecrets,
+  type PassportRequest,
   type InsertPassportRequest,
   type InsertPassportRow,
 } from "../drizzle/schema";
@@ -69,10 +70,32 @@ export async function decideRequest(
   denialReason?: string,
 ) {
   const db = await requireDb();
-  await db
+  const result = await db
     .update(passportRequests)
     .set({ status, decidedBy, decidedAt: new Date(), denialReason: denialReason ?? null })
-    .where(eq(passportRequests.id, id));
+    .where(and(eq(passportRequests.id, id), eq(passportRequests.status, "pending")));
+  return result[0].affectedRows === 1;
+}
+
+export async function approveRequest(
+  id: number,
+  decidedBy: string,
+  createPassport: (request: PassportRequest) => InsertPassportRow,
+) {
+  const db = await requireDb();
+  return db.transaction(async (tx) => {
+    const [request] = await tx.select().from(passportRequests)
+      .where(eq(passportRequests.id, id)).limit(1).for("update");
+    if (!request) return { status: "not_found" } as const;
+    if (request.status !== "pending") return { status: "already_decided" } as const;
+
+    const passport = createPassport(request);
+    await tx.insert(passports).values(passport);
+    await tx.update(passportRequests)
+      .set({ status: "approved", decidedBy, decidedAt: new Date(), denialReason: null })
+      .where(and(eq(passportRequests.id, id), eq(passportRequests.status, "pending")));
+    return { status: "approved", passportId: passport.passportId } as const;
+  });
 }
 
 /* ===== Passports ===== */
