@@ -255,6 +255,15 @@ export const appRouter = router({
   /* ===== Issued passports (owner side) ===== */
   passports: router({
     mine: protectedProcedure.query(({ ctx }) => pdb.listMyPassports(ctx.user.id)),
+    revokeMine: protectedProcedure
+      .input(z.object({ id: z.number().int(), reason: z.string().min(2).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        const p = await pdb.getPassportById(input.id);
+        if (!p || p.userId !== ctx.user.id) throw new TRPCError({ code: "NOT_FOUND" });
+        if (p.status !== "active") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Passport is not active." });
+        await pdb.revokePassport(input.id, input.reason);
+        return { success: true } as const;
+      }),
     /** Full payload + decrypted vault values for the embed bundle download. */
     exportData: protectedProcedure
       .input(z.object({ id: z.number().int() }))
