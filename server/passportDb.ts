@@ -7,10 +7,38 @@ import {
   passports,
   vaultSecrets,
   type PassportRequest,
+  type PassportRow,
   type InsertPassportRequest,
   type InsertPassportRow,
 } from "../drizzle/schema";
 import { getDb } from "./db";
+
+function parseStoredJson(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    throw new Error("Stored Passport JSON is invalid.");
+  }
+}
+
+function hydrateRequest(row: PassportRequest): PassportRequest {
+  const toolIds = parseStoredJson(row.toolIds);
+  const secretKeys = parseStoredJson(row.secretKeys);
+  if (!Array.isArray(toolIds) || toolIds.some((item) => typeof item !== "string")
+      || !Array.isArray(secretKeys) || secretKeys.some((item) => typeof item !== "string")) {
+    throw new Error("Stored Passport request fields are invalid.");
+  }
+  return { ...row, toolIds, secretKeys };
+}
+
+function hydratePassport(row: PassportRow): PassportRow {
+  const payload = parseStoredJson(row.payload);
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new Error("Stored Passport payload is invalid.");
+  }
+  return { ...row, payload: payload as Record<string, unknown> };
+}
 
 async function requireDb() {
   const db = await getDb();
@@ -49,18 +77,20 @@ export async function createRequest(values: InsertPassportRequest) {
 
 export async function listMyRequests(userId: number) {
   const db = await requireDb();
-  return db.select().from(passportRequests).where(eq(passportRequests.userId, userId)).orderBy(desc(passportRequests.createdAt));
+  const rows = await db.select().from(passportRequests).where(eq(passportRequests.userId, userId)).orderBy(desc(passportRequests.createdAt));
+  return rows.map(hydrateRequest);
 }
 
 export async function listAllRequests() {
   const db = await requireDb();
-  return db.select().from(passportRequests).orderBy(desc(passportRequests.createdAt));
+  const rows = await db.select().from(passportRequests).orderBy(desc(passportRequests.createdAt));
+  return rows.map(hydrateRequest);
 }
 
 export async function getRequestById(id: number) {
   const db = await requireDb();
   const rows = await db.select().from(passportRequests).where(eq(passportRequests.id, id)).limit(1);
-  return rows[0];
+  return rows[0] ? hydrateRequest(rows[0]) : undefined;
 }
 
 export async function decideRequest(
@@ -89,7 +119,7 @@ export async function approveRequest(
     if (!request) return { status: "not_found" } as const;
     if (request.status !== "pending") return { status: "already_decided" } as const;
 
-    const passport = createPassport(request);
+    const passport = createPassport(hydrateRequest(request));
     await tx.insert(passports).values(passport);
     await tx.update(passportRequests)
       .set({ status: "approved", decidedBy, decidedAt: new Date(), denialReason: null })
@@ -106,24 +136,26 @@ export async function insertPassport(values: InsertPassportRow) {
 
 export async function listMyPassports(userId: number) {
   const db = await requireDb();
-  return db.select().from(passports).where(eq(passports.userId, userId)).orderBy(desc(passports.issuedAt));
+  const rows = await db.select().from(passports).where(eq(passports.userId, userId)).orderBy(desc(passports.issuedAt));
+  return rows.map(hydratePassport);
 }
 
 export async function listAllPassports() {
   const db = await requireDb();
-  return db.select().from(passports).orderBy(desc(passports.issuedAt));
+  const rows = await db.select().from(passports).orderBy(desc(passports.issuedAt));
+  return rows.map(hydratePassport);
 }
 
 export async function getPassportByRequestId(requestId: number) {
   const db = await requireDb();
   const rows = await db.select().from(passports).where(eq(passports.requestId, requestId)).limit(1);
-  return rows[0];
+  return rows[0] ? hydratePassport(rows[0]) : undefined;
 }
 
 export async function getPassportById(id: number) {
   const db = await requireDb();
   const rows = await db.select().from(passports).where(eq(passports.id, id)).limit(1);
-  return rows[0];
+  return rows[0] ? hydratePassport(rows[0]) : undefined;
 }
 
 export async function revokePassport(id: number, reason: string) {
