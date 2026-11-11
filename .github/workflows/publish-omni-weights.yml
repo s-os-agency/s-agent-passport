@@ -1,0 +1,22 @@
+name: Publish actual Omni model weights
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: qwen2-5-omni-7b-weights-v1
+  cancel-in-progress: false
+jobs:
+  distribute:
+    if: github.repository == 's-os-agency/s-agent-passport'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Read committed model distribution source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Publish actual pinned model bytes and verify GitHub download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 s-agency/model-assets/runtime/publish_weights.py
