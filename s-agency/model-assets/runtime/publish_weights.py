@@ -103,7 +103,7 @@ def main():
             fetched.unlink()
             print(f"GITHUB_BYTES_VERIFIED {name} {asset['size']} {expected_hash}", flush=True)
             return {"name": name, "bytes": asset["size"], "sha256": expected_hash,
-                    "url": asset["browser_download_url"]}
+                    "url": f"https://github.com/{REPOSITORY}/releases/download/{TAG}/{quote(name)}"}
 
         for entry in selected:
             name = entry["rfilename"]
