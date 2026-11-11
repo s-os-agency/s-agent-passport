@@ -73,7 +73,7 @@ def main():
                  f"Executing agent: OpenAI dot. Source commit: {os.environ['GITHUB_SHA']}.\n")
         gh("release", "create", TAG, "--repo", REPOSITORY, "--target", os.environ["GITHUB_SHA"],
            "--draft", "--title", "Qwen2.5-Omni-7B: actual model weights", "--notes", notes)
-        release = api(f"repos/{REPOSITORY}/releases/tags/{TAG}")
+        release = next(r for r in api(f"repos/{REPOSITORY}/releases?per_page=100") if r["tag_name"] == TAG)
     release_id = release["id"]
     assets = {a["name"]: a for a in api(f"repos/{REPOSITORY}/releases/{release_id}/assets?per_page=100")}
     manifest = {"schema_version": 1, "repository": REPOSITORY, "tag": TAG,
