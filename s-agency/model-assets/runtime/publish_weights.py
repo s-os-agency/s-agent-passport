@@ -149,7 +149,21 @@ def main():
             manifest["files"].append(record)
         manifest["verified_at"] = datetime.now(timezone.utc).isoformat()
         manifest_path = work / "distribution-manifest.json"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+        if "distribution-manifest.json" in assets:
+            # Resume a completed upload without changing its timestamp or hash.
+            previous_asset = assets["distribution-manifest.json"]
+            with manifest_path.open("wb") as target:
+                gh("api", "-H", "Accept: application/octet-stream",
+                   f"repos/{REPOSITORY}/releases/assets/{previous_asset['id']}", output=target)
+            previous = json.loads(manifest_path.read_text())
+            for key in ("schema_version", "repository", "tag", "repo_id", "revision",
+                        "license", "total_bytes", "files", "inference_observed",
+                        "github_roundtrip_verified"):
+                if previous.get(key) != manifest[key]:
+                    raise RuntimeError(f"Existing draft manifest differs at {key}; not overwritten.")
+            manifest = previous
+        else:
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
         manifest_hash = sha256(manifest_path)
         upload_and_readback(manifest_path, manifest_hash)
         gh("release", "edit", TAG, "--repo", REPOSITORY, "--draft=false", "--latest=false")

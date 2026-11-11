@@ -1,8 +1,8 @@
 # Shared Omni model runtime
 
-This package turns the existing model registry into a downloadable, pinned runtime
-and a small client that other resources can reuse. **Source prepared; no deployed
-GPU service or generated result has been observed yet.**
+This package includes the actual pinned model weights in a [GitHub Release](https://github.com/s-os-agency/s-agent-passport/releases/tag/qwen2.5-omni-7b-ae9e169-weights-v1),
+a reconstructing installer, local inference server and resource clients.
+**Weights are published and verified; GPU inference has not been observed.**
 
 ## Model choice
 
@@ -17,9 +17,12 @@ choice. Qwen3-Omni-30B-A3B-Instruct offers broader language support but a roughl
 the smaller permissively licensed Omni deployment, not the newest/largest model.
 Arabic speech generation is not promised by this package.
 
-The pinned official weights stay on Hugging Face and the selected GPU host, not in
-Git history, Git LFS billing, every resource repository, or browser downloads.
-The downloader keeps the original model card and license with the weights.
+The actual pinned official weights are mirrored as GitHub Release assets. Large
+files are losslessly split below GitHub’s 2 GiB per-asset limit. The installer
+reconstructs the original files using GitHub only, with pinned manifest, part and
+whole-file SHA-256 checks. The original model card and license are included.
+Weights are not stored in Git history or billed Git LFS. Existing repositories
+share one weight release and can reuse one installation on a common host.
 
 ## Deployment requirements and current blocker
 
@@ -35,10 +38,11 @@ The downloader keeps the original model card and license with the weights.
 - Existing owner-authorized Passport scope, HTTPS gateway authentication,
   revocation, rate limits, and request size limits before remote access.
 
-No suitable GPU host or scoped gateway was available during source preparation.
-No GPU was rented, no model weights were downloaded into GitHub, no credentials
-were created, and no production routes were changed. Existing model activation
-rules and access rights remain in force.
+The actual weight transfer completed in GitHub Actions and every asset was
+downloaded back from GitHub with matching SHA-256 before publication. The existing
+VPS SSH route timed out before host commands could run, so GPU deployment remains
+unverified. No GPU was rented, no credentials were created and no production
+routes were changed. Existing activation rules and access rights remain in force.
 
 ## Download once on the selected host
 
@@ -48,14 +52,15 @@ Run from this directory after selecting the existing authorized GPU host:
 python3.11 -m venv .venv
 . .venv/bin/activate
 python -m pip install -r requirements.txt
-python download_model.py --cache-dir /srv/s-omni/cache --receipt /srv/s-omni/download.json
+python download_from_github.py --model-dir /srv/s-omni/weights --receipt /srv/s-omni/download.json
 ```
 
-The downloader requests only the explicit locked files from the official public
-repository, sends no Hugging Face token, checks revision, sizes and LFS SHA-256
-digests, and saves a local receipt. It refuses a snapshot larger than 26 GB and
-checks available disk before downloading. Reuse this cache rather than duplicating
-the model for each resource. The receipt contains host-local paths; keep it private.
+The GitHub-only downloader requests the actual release assets, requires no token,
+checks the committed manifest and all file hashes, and saves a local receipt. It
+refuses a snapshot larger than 26 GB and checks free disk. The alternative
+`download_model.py` still downloads directly from upstream HF if explicitly chosen.
+Reuse the installed weights rather than duplicating the model on the same host.
+The receipt contains host-local paths; keep it private.
 
 The top-level Python package versions are pinned; transitive dependencies are not
 a complete lockfile. Host compatibility and inference remain unverified here.
@@ -137,9 +142,11 @@ Before calling this live, retain the provider's deployment receipt, model downlo
 receipt, ready response and an actual generated result with request ID and pinned
 model revision. Download completion is not inference evidence.
 
-No software tests or test scaffolding were added or run. Preparation evidence is
-source and configuration inspection only. The executing assistant prepared this
-package on 2026-11-11. No real runtime response is included or fabricated.
+No software tests or test scaffolding were added or run. Evidence includes actual
+GitHub release assets, byte counts, SHA-256 download roundtrips, source inspection
+and the [transfer run](https://github.com/s-os-agency/s-agent-passport/actions/runs/43063751749).
+Implementation: OpenAI dot. Transfer execution: github-actions[bot].
+No inference response is included or fabricated.
 
 Rollback is to stop this optional worker and keep existing resource routes. No
 database migrations, production auth changes or destructive actions are required.

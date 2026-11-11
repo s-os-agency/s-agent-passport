@@ -37,5 +37,7 @@ High-risk visual/audio/video assets stay `registry_only` until owner-reviewed.
 [Omni runtime and resource client](runtime/README.md) packages the pinned
 `Qwen/Qwen2.5-Omni-7B` model for one GPU host and multiple client resources.
 The [model lock](registry/omni-model.lock.json) records its exact upstream revision.
-Source is prepared; model inference and remote resource connections are not yet
-deployed or verified. Existing activation permissions are unchanged.
+Actual model weights are published in the [GitHub Release](https://github.com/s-os-agency/s-agent-passport/releases/tag/qwen2.5-omni-7b-ae9e169-weights-v1).
+The installer downloads and reconstructs these bytes from GitHub, with SHA-256
+verification. GPU inference and remote resource connections are not yet deployed
+or verified. Existing activation permissions are unchanged.

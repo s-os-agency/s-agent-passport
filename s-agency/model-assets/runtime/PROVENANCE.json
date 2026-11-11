@@ -1,0 +1,15 @@
+{
+  "model": "Qwen/Qwen2.5-Omni-7B",
+  "model_revision": "ae9e1690543ffd5c0221dc27f79834d0294cba00",
+  "actual_weights_release": "https://github.com/s-os-agency/s-agent-passport/releases/tag/qwen2.5-omni-7b-ae9e169-weights-v1",
+  "manifest_sha256": "0ef1dca5842451fc051dd5531ac9a453df52a88f8c8a55bbffe1821e2251294a",
+  "weight_bytes": 22379295753,
+  "implementation_written_by": "OpenAI dot",
+  "github_commit_account": "S/Agency (s-os-agency)",
+  "weight_transfer_executed_by": "github-actions[bot]",
+  "weight_transfer_run": "https://github.com/s-os-agency/s-agent-passport/actions/runs/43063751749",
+  "weight_transfer_source_commit": "0a39f036ea7f1f3e16e31ca877c2add94f91840f",
+  "github_roundtrip_verified": true,
+  "inference_observed": false,
+  "software_tests_run": false
+}

@@ -173,10 +173,11 @@
       "owner_control": "required",
       "approval_status": "distribution_requested_runtime_not_activated",
       "passport_requirement": "required",
-      "activation_status": "source_prepared_not_deployed",
+      "activation_status": "weights_distributed_runtime_not_deployed",
       "supabase_mirror": "not_applied",
       "runtime_package": "../runtime/README.md",
-      "model_lock": "omni-model.lock.json"
+      "model_lock": "omni-model.lock.json",
+      "weights_release": "https://github.com/s-os-agency/s-agent-passport/releases/tag/qwen2.5-omni-7b-ae9e169-weights-v1"
     }
   ]
 }

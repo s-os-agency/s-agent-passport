@@ -7,21 +7,55 @@
   "license": "Apache-2.0",
   "license_url": "https://huggingface.co/Qwen/Qwen2.5-Omni-7B/blob/ae9e1690543ffd5c0221dc27f79834d0294cba00/LICENSE",
   "task": "any-to-any",
-  "inputs": ["text", "image", "audio", "video"],
-  "outputs": ["text", "audio"],
-  "unsupported_outputs": ["image", "video"],
+  "inputs": [
+    "text",
+    "image",
+    "audio",
+    "video"
+  ],
+  "outputs": [
+    "text",
+    "audio"
+  ],
+  "unsupported_outputs": [
+    "image",
+    "video"
+  ],
   "download_limit_bytes": 26000000000,
   "recommended_gpu_memory_gb": 48,
   "recommended_free_disk_gb": 35,
-  "operational_status": "source_prepared_not_deployed",
+  "operational_status": "weights_distributed_runtime_not_deployed",
   "weights_in_git": false,
   "files": [
-    "LICENSE", "README.md", "added_tokens.json", "chat_template.json",
-    "config.json", "generation_config.json", "merges.txt",
-    "model-00001-of-00005.safetensors", "model-00002-of-00005.safetensors",
-    "model-00003-of-00005.safetensors", "model-00004-of-00005.safetensors",
-    "model-00005-of-00005.safetensors", "model.safetensors.index.json",
-    "preprocessor_config.json", "special_tokens_map.json", "spk_dict.pt",
-    "tokenizer.json", "tokenizer_config.json", "vocab.json"
-  ]
+    "LICENSE",
+    "README.md",
+    "added_tokens.json",
+    "chat_template.json",
+    "config.json",
+    "generation_config.json",
+    "merges.txt",
+    "model-00001-of-00005.safetensors",
+    "model-00002-of-00005.safetensors",
+    "model-00003-of-00005.safetensors",
+    "model-00004-of-00005.safetensors",
+    "model-00005-of-00005.safetensors",
+    "model.safetensors.index.json",
+    "preprocessor_config.json",
+    "special_tokens_map.json",
+    "spk_dict.pt",
+    "tokenizer.json",
+    "tokenizer_config.json",
+    "vocab.json"
+  ],
+  "weights_in_github_release": true,
+  "github_distribution": {
+    "repository": "s-os-agency/s-agent-passport",
+    "tag": "qwen2.5-omni-7b-ae9e169-weights-v1",
+    "release_url": "https://github.com/s-os-agency/s-agent-passport/releases/tag/qwen2.5-omni-7b-ae9e169-weights-v1",
+    "manifest_sha256": "0ef1dca5842451fc051dd5531ac9a453df52a88f8c8a55bbffe1821e2251294a",
+    "total_original_bytes": 22379295753,
+    "github_roundtrip_verified": true,
+    "workflow_run_url": "https://github.com/s-os-agency/s-agent-passport/actions/runs/43063751749",
+    "inference_observed": false
+  }
 }
