@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+.env
+models/
+outputs/
+*.wav
+*.safetensors
+*.pt

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "asset_id": "hf-qwen2-5-omni-7b",
+  "repo_id": "Qwen/Qwen2.5-Omni-7B",
+  "revision": "ae9e1690543ffd5c0221dc27f79834d0294cba00",
+  "source_url": "https://huggingface.co/Qwen/Qwen2.5-Omni-7B",
+  "license": "Apache-2.0",
+  "license_url": "https://huggingface.co/Qwen/Qwen2.5-Omni-7B/blob/ae9e1690543ffd5c0221dc27f79834d0294cba00/LICENSE",
+  "task": "any-to-any",
+  "inputs": ["text", "image", "audio", "video"],
+  "outputs": ["text", "audio"],
+  "unsupported_outputs": ["image", "video"],
+  "download_limit_bytes": 26000000000,
+  "recommended_gpu_memory_gb": 48,
+  "recommended_free_disk_gb": 35,
+  "operational_status": "source_prepared_not_deployed",
+  "weights_in_git": false,
+  "files": [
+    "LICENSE", "README.md", "added_tokens.json", "chat_template.json",
+    "config.json", "generation_config.json", "merges.txt",
+    "model-00001-of-00005.safetensors", "model-00002-of-00005.safetensors",
+    "model-00003-of-00005.safetensors", "model-00004-of-00005.safetensors",
+    "model-00005-of-00005.safetensors", "model.safetensors.index.json",
+    "preprocessor_config.json", "special_tokens_map.json", "spk_dict.pt",
+    "tokenizer.json", "tokenizer_config.json", "vocab.json"
+  ]
+}

@@ -160,6 +160,23 @@
       "passport_requirement": "required",
       "activation_status": "registry_only",
       "supabase_mirror": "prepared"
+    },
+    {
+      "asset_id": "hf-qwen2-5-omni-7b",
+      "model_repo": "Qwen/Qwen2.5-Omni-7B",
+      "source_url": "https://huggingface.co/Qwen/Qwen2.5-Omni-7B",
+      "primary_capability": "multimodal input with text and speech output",
+      "model_class": "any-to-any",
+      "agent_fit": "Shared multimodal service for existing resources",
+      "allowed_use": "Owner-authorized text, image, audio and video requests through existing scoped gateway",
+      "risk_level": "medium",
+      "owner_control": "required",
+      "approval_status": "distribution_requested_runtime_not_activated",
+      "passport_requirement": "required",
+      "activation_status": "source_prepared_not_deployed",
+      "supabase_mirror": "not_applied",
+      "runtime_package": "../runtime/README.md",
+      "model_lock": "omni-model.lock.json"
     }
   ]
 }

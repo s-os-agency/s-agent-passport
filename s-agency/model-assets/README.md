@@ -30,3 +30,12 @@ The first approved runtime-ready assets are:
 - `sentence-transformers/all-MiniLM-L6-v2`
 
 High-risk visual/audio/video assets stay `registry_only` until owner-reviewed.
+
+
+## Shared any-to-any distribution
+
+[Omni runtime and resource client](runtime/README.md) packages the pinned
+`Qwen/Qwen2.5-Omni-7B` model for one GPU host and multiple client resources.
+The [model lock](registry/omni-model.lock.json) records its exact upstream revision.
+Source is prepared; model inference and remote resource connections are not yet
+deployed or verified. Existing activation permissions are unchanged.
