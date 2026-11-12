@@ -1,51 +1,24 @@
-# Agent Passport
+# S/ Omni Model
 
-**Owner controlled. Calibrated. Accountable.**
+The pinned Qwen2.5-Omni-7B weights, installer, private inference runtime and resource clients remain in this same GitHub repository. Only its name changed from `s-agent-passport` to `s-omni-model`; the repository ID, published release and all 29 release assets are unchanged.
 
-Agent Passport gives an agent a scoped identity: who issued it, what it can do, when it expires, and whether it remains active. This repository contains the Passport web product, a demonstration, and the GatePass policy specification.
+- [Runtime and deployment requirements](s-agency/model-assets/runtime/README.md)
+- [Pinned model lock](s-agency/model-assets/registry/omni-model.lock.json)
+- [Published weights](https://github.com/s-os-agency/s-omni-model/releases/tag/qwen2.5-omni-7b-ae9e169-weights-v1)
+- [Model registry and supporting assets](s-agency/model-assets/README.md)
 
-The passport scales through **verifiable delegation**: every agent, capability, chain, and action must inherit a bounded, attributable, revocable authority trail from root policy. Routine actions proceed automatically inside the approved envelope; new classes of authority are escalated at the gate.
+Model paths and installer identity are preserved. The original `s-agent-passport` string stays in the pinned distribution manifest, lock and downloader so existing installations remain compatible. Do not create another repository at the old name, which would remove its redirects.
 
-## What is here
+## Passport source
 
-- **Landing** (`/`): product overview.
-- **Owner portal** (`/portal`): request passports, manage the owner's vault, and export issued passports.
-- **Approval desk** (`/admin`): administrator review and revocation.
-- **Interactive demo** (`/demo`): illustrates issuance and gate decisions; demo behavior is not a live authorization decision.
-- **GatePass** (`agents/s-gatepass/`): policy and schema for an access broker. See its [README](agents/s-gatepass/README.md) for the boundary and activation requirements.
-- **Governed delegation** (`governance/`): the canonical authority envelope, execution-lane policy, system evaluator, and decision-receipt contract. Start at [governance/README.md](governance/README.md).
+The existing Passport server is at [s-agent-passport-server](https://github.com/s-os-agency/s-agent-passport-server). An [isolated extraction branch](https://github.com/s-os-agency/s-agent-passport-server/tree/passport-source-separation) currently contains 171 unchanged source files. Twenty files containing prior personal-name content and one issuer configuration are held pending authorization. This partial copy is not deployable and does not replace the existing server.
 
-The web app uses React, Vite, tRPC, Express, Drizzle, and MySQL. Its web issuance and vault implementation lives in `server/passport.ts`, `server/passportDb.ts`, and `server/routers.ts`. The Python Passport package and the Supabase `public.agent_passports` registry described in project notes are separate components; this web app's Drizzle tables are not automatically the same registry.
+The full prior layout and history remain untouched on this repository's [compatibility main branch](https://github.com/s-os-agency/s-omni-model/tree/main). Existing references to `/main/` and pinned commits continue to resolve. No original Passport source was deleted, and no existing server, database, credential, gateway or deployed connection was changed.
 
-## Local development
+## Verified scope
 
-Requirements: Node.js, pnpm, a MySQL database, and the application authentication configuration.
+The 29 release asset IDs, sizes and SHA-256 digests match the pre-rename values. The old manifest download URL still returns identical bytes. GPU inference and remote resource deployment remain unverified; repository organization does not change that status.
 
-```bash
-pnpm install
-pnpm check
-pnpm test
-pnpm dev
-```
+The publisher guard now recognizes the unchanged numeric repository ID after renaming, while retaining its original manifest identity and refusal to overwrite published assets. No model weights were re-uploaded. No software tests or deployment commands were run.
 
-Provide the required environment variables through your local deployment configuration. Review `server/_core/env.ts` and `drizzle.config.ts` for the current names before starting; keep keys, database credentials, and vault contents out of commits. Run `pnpm db:push` only against a database you intend to migrate.
-
-## Passport flow
-
-1. The owner submits an agent name, type, purpose, requested tools, and optional expiry.
-2. An administrator reviews the request. Approval issues a passport with an ID, capabilities, permission flags, source history, checksum, and issuer signature.
-3. The owner can view and export issued records. An administrator can revoke them.
-4. A relying gate must check current registry status, expiry, signature, and required capabilities and permissions at the point of use. A downloadable passport alone does not grant access.
-5. The gate evaluates the current authority envelope: Green actions proceed, Yellow actions need independent validation, and Red actions require explicit owner approval. Every decision emits a hash-linked receipt.
-
-The web issuer uses an HMAC signature derived from its server secret; the separate Python package described in project notes supports Ed25519. Verify against the correct issuer and do not treat these signature schemes as interchangeable.
-
-## Security and operating boundaries
-
-Never commit secrets, credential exports, bearer tokens, recovery material, or real gate registry data. The example GatePass registry is illustrative. Public repository code does not imply that any gate, Supabase integration, server service, or deployment is active.
-
-## License
-
-[License Version 1.0](LICENSE). Internal evaluation and modification are permitted under its conditions; public forks, redistribution, hosted distribution, and commercial use require prior written permission.
-
-Owned and maintained by the project maintainers.
+Implementation: OpenAI dot, 12 November 2026.

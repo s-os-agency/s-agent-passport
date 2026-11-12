@@ -1,6 +1,0 @@
-interface:
-  display_name: "Gatekeeper Escort"
-  short_description: "Escort Passport agents through authorized gates"
-  default_prompt: "Use $gatekeeper-escort to verify this Passport and escort the agent through the requested gate."
-policy:
-  allow_implicit_invocation: true

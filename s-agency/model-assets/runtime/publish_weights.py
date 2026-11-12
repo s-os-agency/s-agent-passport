@@ -37,9 +37,11 @@ def sha256(path):
 
 
 def main():
-    if os.environ.get("GITHUB_REPOSITORY") != REPOSITORY:
+    if os.environ.get("GITHUB_REPOSITORY") not in {REPOSITORY, "s-os-agency/s-omni-model"}:
         raise RuntimeError("Publish only inside the existing canonical repository.")
     repo = api(f"repos/{REPOSITORY}")
+    if repo["id"] != 1301110790:
+        raise RuntimeError("Canonical repository identity mismatch.")
     if repo["private"]:
         raise RuntimeError("Only the existing public repository's free standard runner is allowed.")
     source = f"https://huggingface.co/api/models/{LOCK['repo_id']}/revision/{LOCK['revision']}?blobs=true"
